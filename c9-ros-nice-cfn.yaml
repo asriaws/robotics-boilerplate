@@ -42,8 +42,8 @@ Parameters:
     Description: Cloud9 Role ARN to permit access to C9 environment (arn:aws:iam::{ACCOUNT_ID}:assumed-role/{ROLE_NAME}/{ALIAS})
     Type: String
     Default: arn:aws:sts::804152302157:assumed-role/admin/asriaws-Isengard
-  S3IsaacSimImageURI:
-    Description: Provide Presigned URL for IsaacSim Image
+  NGCAPIKey:
+    Description: NGC API Key
     Type: String
 Mappings:
   OSMap:
@@ -392,7 +392,7 @@ Resources:
           export STACKNAME=${AWS::StackName}
           export ROSVERSION=${ROSVersion}
           export SIMULATOR=${Simulator}
-          export S3IMAGEURL=${S3IsaacSimImageURI}
+          export NGCPASSWORD=${NGCAPIKey}
 
           ### 2. DESKTOP
           wget https://raw.githubusercontent.com/aws-samples/robotics-boilerplate/main/install-desktop.sh

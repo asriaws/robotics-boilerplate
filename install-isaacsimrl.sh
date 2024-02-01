@@ -17,6 +17,10 @@ apt-get install -y nvidia-container-toolkit
 systemctl restart docker
 docker run --rm --gpus all ubuntu nvidia-smi
 
-# Download IsaacGym Image from S3 Presigned URL and Install the image
-curl -o isaac-sim-2023.1.1 "${S3IMAGEURL}"
-docker load --input isaac-sim-2023.1.1
+# Download IsaacSim Image from NVCR repository
+docker login --username=\$oauthtoken --password="${NGCPASSWORD}" nvcr.io
+docker pull nvcr.io/nvidia/isaac-sim:2023.1.1
+
+# Download OIGE Repository
+cd /home/ubuntu/environment
+git clone https://github.com/NVIDIA-Omniverse/OmniIsaacGymEnvs.git
