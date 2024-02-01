@@ -16,3 +16,7 @@ curl -fsSL https://nvidia.github.io/libnvidia-container/gpgkey | sudo gpg --dear
 apt-get install -y nvidia-container-toolkit
 systemctl restart docker
 docker run --rm --gpus all ubuntu nvidia-smi
+
+# Download IsaacGym Image from S3 Presigned URL and Install the image
+aws s3 cp s3://gtc2024-isaacsimrl/isaac-sim-2023.1.1 .
+docker load --input isaac-sim-2023.1.1
