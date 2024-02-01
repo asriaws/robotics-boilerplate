@@ -18,5 +18,5 @@ systemctl restart docker
 docker run --rm --gpus all ubuntu nvidia-smi
 
 # Download IsaacGym Image from S3 Presigned URL and Install the image
-curl -o isaac-sim-2023.1.1 $S3IMAGEURL
+curl -o isaac-sim-2023.1.1 "${S3IMAGEURL}"
 docker load --input isaac-sim-2023.1.1
