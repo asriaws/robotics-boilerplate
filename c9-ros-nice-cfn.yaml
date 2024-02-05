@@ -475,7 +475,7 @@ Resources:
           export ROSVERSION=${ROSVersion}
           export SIMULATOR=${Simulator}
           export NGCPASSWORD=${NGCAPIKey}
-          export EFS_FILE_SYSTEM_ID=${FileSystem}
+          export DIR_SRC=${FileSystem}.efs.${AWS::Region}.amazonaws.com
           
           ### 2. DESKTOP
           wget https://raw.githubusercontent.com/aws-samples/robotics-boilerplate/main/install-desktop.sh
@@ -505,7 +505,12 @@ Resources:
           wget https://raw.githubusercontent.com/asriaws/robotics-boilerplate/main/install-isaacsimrl.sh
           bash ./install-isaacsimrl.sh
 
-          ### 9. COMPLETION
+          ### 9. EFS Mounting
+          echo $DIR_SRC
+          mkdir ~/efs
+          mount -t nfs4 -o nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2 $DIR_SRC:/ ~/efs
+          
+          ### 10. COMPLETION
           # Signal creation complete
           wget https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-py3-latest.zip
           unzip aws-cfn-bootstrap-py3-latest.zip
