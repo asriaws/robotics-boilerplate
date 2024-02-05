@@ -332,6 +332,7 @@ Resources:
       ManagedPolicyArns:
         - 'arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess'
         - 'arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryFullAccess'
+        - 'arn:aws:iam::aws:policy/AmazonElasticFileSystemFullAccess'
       Policies:
         - PolicyName: !Sub "Cloud9Actions-${AWS::StackName}"
           PolicyDocument:
@@ -475,7 +476,6 @@ Resources:
           export ROSVERSION=${ROSVersion}
           export SIMULATOR=${Simulator}
           export NGCPASSWORD=${NGCAPIKey}
-          export DIR_SRC=${FileSystem}.efs.${AWS::Region}.amazonaws.com
           
           ### 2. DESKTOP
           wget https://raw.githubusercontent.com/aws-samples/robotics-boilerplate/main/install-desktop.sh
@@ -506,9 +506,8 @@ Resources:
           bash ./install-isaacsimrl.sh
 
           ### 9. EFS Mounting
-          echo $DIR_SRC
-          mkdir ~/efs
-          mount -t nfs4 -o nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2 $DIR_SRC:/ ~/efs
+          mkdir /home/ubuntu/environment/efs
+          mount -t nfs4 -o nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2 ${FileSystem}.efs.${AWS::Region}.amazonaws.com:/ /home/ubuntu/environment/efs
           
           ### 10. COMPLETION
           # Signal creation complete
