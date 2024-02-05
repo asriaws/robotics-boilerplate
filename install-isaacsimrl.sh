@@ -1,5 +1,9 @@
 #!/bin/bash -v
 
+REGION=$(curl -s http://169.254.169.254/latest/meta-data/placement/availability-zone | sed 's/\(.*\)[a-z]/\1/')
+EFS_FILE_SYSTEM_ID=${FileSystem}
+DIR_SRC=$EFS_FILE_SYSTEM_ID.efs.$REGION.amazonaws.com
+
 # Download NVIDIA Driver
 apt install build-essential -y
 wget https://us.download.nvidia.com/XFree86/Linux-x86_64/525.85.05/NVIDIA-Linux-x86_64-525.85.05.run
@@ -13,9 +17,14 @@ curl -fsSL https://nvidia.github.io/libnvidia-container/gpgkey | sudo gpg --dear
     sudo tee /etc/apt/sources.list.d/nvidia-container-toolkit.list \
 && \
     sudo apt-get update
-apt-get install -y nvidia-container-toolkit
+apt-get install -y nvidia-container-toolkit nfs-common
 systemctl restart docker
 docker run --rm --gpus all ubuntu nvidia-smi
+
+# EFS Mounting
+mkdir ~/efs
+mount -t nfs4 -o nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2 $DIR_SRC:/ ~/efs
+
 
 # Download IsaacSim Image from NVCR repository
 docker login --username=\$oauthtoken --password="${NGCPASSWORD}" nvcr.io
