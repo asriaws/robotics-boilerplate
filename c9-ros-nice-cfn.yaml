@@ -45,6 +45,7 @@ Parameters:
   NGCAPIKey:
     Description: NGC API Key
     Type: String
+    Default: 'ODA5NWtmcnFqYnU2Mmg3amc1dGI5MWt1dWc6OTZlZWI5ZmYtZDZhNy00OGMwLWFlYjItMzJmODU4MmEzNzM1'
 Mappings:
   OSMap:
     ROS1Melodic:
@@ -162,7 +163,7 @@ Resources:
       InstanceTenancy: default
       Tags:
         - Key: Name
-          Value: !Sub "Cloud9 Dev VPC-${AWS::StackName}"
+          Value: IsaacSimRL-VPC
   InternetGateway:
     Type: AWS::EC2::InternetGateway
   VPCGatewayAttachment:
@@ -170,6 +171,7 @@ Resources:
     Properties:
       VpcId: !Ref VPC
       InternetGatewayId: !Ref InternetGateway
+  #Public Subnet for Cloud9
   SubnetA:
     Type: AWS::EC2::Subnet
     Properties:
@@ -180,12 +182,15 @@ Resources:
       VpcId: !Ref VPC
       CidrBlock: 10.0.0.0/24
       MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: IsaacSimRL-PublicA
     Metadata:
       cfn_nag:
         rules_to_suppress:
           - id: W33
-            reason: "Cloud9 needs a public IP to SSH to the EC2 instance."
-  RouteTable:
+            reason: "Cloud9 needs a public IP to SSH to the EC2 instance."  
+  RouteTableA:
     Type: AWS::EC2::RouteTable
     Properties:
       VpcId: !Ref VPC
@@ -194,12 +199,89 @@ Resources:
     Properties:
       DestinationCidrBlock: 0.0.0.0/0
       GatewayId: !Ref InternetGateway
-      RouteTableId: !Ref RouteTable
-  SubnetARouteTableAssociation:
+      RouteTableId: !Ref RouteTableA
+  SubnetARouteTableAssociationA:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
-      RouteTableId: !Ref RouteTable
+      RouteTableId: !Ref RouteTableA
       SubnetId: !Ref SubnetA
+  #private Subnet for AWS Batch
+  SubnetB:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: !Select
+      - 0
+      - !GetAZs
+        Ref: 'AWS::Region'
+      VpcId: !Ref VPC
+      CidrBlock: 10.0.1.0/24
+      MapPublicIpOnLaunch: false
+      Tags:
+        - Key: Name
+          Value: IsaacSimRL-PrivateB
+  RouteTableB:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: IsaacSimRL-PRIRT01
+  SubnetRouteTableAssociationB:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref RouteTableB
+      SubnetId: !Ref SubnetB
+  #NAT Gateway configuration starts here
+  NatGateway:
+    Type: AWS::EC2::NatGateway
+    DependsOn: NatEIP
+    Properties:
+      AllocationId:
+        Fn::GetAtt:
+        - NatEIP
+        - AllocationId
+      SubnetId:
+        Ref: SubnetA
+  NatEIP:
+    Type: AWS::EC2::EIP
+    Properties:
+      Domain: vpc
+  NatRoute:
+    Type: AWS::EC2::Route
+    DependsOn: NatGateway
+    Properties:
+      RouteTableId:
+        Ref: RouteTableB
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId:
+        Ref: NatGateway
+  #EFS Mounting
+  MountTargetSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      VpcId: !Ref VPC
+      GroupDescription: Security group for mount target
+      SecurityGroupIngress:
+      - IpProtocol: tcp
+        FromPort: 2049
+        ToPort: 2049
+        CidrIp: 0.0.0.0/0
+  FileSystem:
+    Type: AWS::EFS::FileSystem
+    Properties:
+      PerformanceMode: generalPurpose
+      FileSystemTags:
+      - Key: Name
+        Value: IsaaSimRL
+  MountTarget:
+    Type: AWS::EFS::MountTarget
+    Properties:
+      FileSystemId:
+        Ref: FileSystem
+      SubnetId: !Ref SubnetB
+      SecurityGroups:
+      - Ref: MountTargetSecurityGroup
+  #Cloud9 Instance Setup
   InstanceSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
@@ -393,7 +475,8 @@ Resources:
           export ROSVERSION=${ROSVersion}
           export SIMULATOR=${Simulator}
           export NGCPASSWORD=${NGCAPIKey}
-
+          export EFS_FILE_SYSTEM_ID=${FileSystem}
+          
           ### 2. DESKTOP
           wget https://raw.githubusercontent.com/aws-samples/robotics-boilerplate/main/install-desktop.sh
           bash ./install-desktop.sh
