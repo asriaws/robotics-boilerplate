@@ -1,7 +1,6 @@
 #!/bin/bash -v
 
 REGION=$(curl -s http://169.254.169.254/latest/meta-data/placement/availability-zone | sed 's/\(.*\)[a-z]/\1/')
-EFS_FILE_SYSTEM_ID=${FileSystem}
 DIR_SRC=$EFS_FILE_SYSTEM_ID.efs.$REGION.amazonaws.com
 
 # Download NVIDIA Driver
