@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: MIT-0
 ---
 AWSTemplateFormatVersion: '2010-09-09'
-Description: AWS CloudFormation template for dynamic Cloud 9 RoboMaker setups. Creates a Cloud9 and bootstraps the instance, installs DCV, and optionally installs ROS and a simulator.
+Description: AWS CloudFormation template for dynamic Cloud 9 setups. Creates a Cloud9 and bootstraps the instance, installs DCV, and optionally installs ROS and a simulator.
 Parameters:
   C9InstanceType:
     Description: Cloud9 Instance Type
@@ -45,7 +45,11 @@ Parameters:
   NGCAPIKey:
     Description: NGC API Key
     Type: String
-    Default: 'XXXXX'
+    Default: 'ODA5NWtmcnFqYnU2Mmg3amc1dGI5MWt1dWc6OTZlZWI5ZmYtZDZhNy00OGMwLWFlYjItMzJmODU4MmEzNzM1'
+  ECSBaseAMI:
+    Description: AMI for AWS Batch Compute Resource
+    Type: String
+    Default: ami-0c1f40301b6196c01
 Mappings:
   OSMap:
     ROS1Melodic:
@@ -176,7 +180,7 @@ Resources:
     Type: AWS::EC2::Subnet
     Properties:
       AvailabilityZone: !Select
-      - 0
+      - 2
       - !GetAZs
         Ref: 'AWS::Region'
       VpcId: !Ref VPC
@@ -210,7 +214,7 @@ Resources:
     Type: AWS::EC2::Subnet
     Properties:
       AvailabilityZone: !Select
-      - 0
+      - 2
       - !GetAZs
         Ref: 'AWS::Region'
       VpcId: !Ref VPC
@@ -255,6 +259,28 @@ Resources:
       DestinationCidrBlock: 0.0.0.0/0
       NatGatewayId:
         Ref: NatGateway
+  #S3  Endpoint for AWS Batch
+  S3Endpoint:
+    Type: 'AWS::EC2::VPCEndpoint'
+    Properties:
+      VpcEndpointType: 'Gateway'
+      ServiceName: !Sub 'com.amazonaws.${AWS::Region}.s3'
+      VpcId: !Ref VPC
+      RouteTableIds:
+        - !Ref RouteTableB
+  #EC2 Launch Template
+  BatchLaunchTemplate:
+    Type: AWS::EC2::LaunchTemplate
+    Properties:
+      LaunchTemplateName: BatchLaunchTemplate
+      LaunchTemplateData:        
+        ImageId: !Ref ECSBaseAMI
+        BlockDeviceMappings: 
+          - Ebs:
+              VolumeSize: 250
+              VolumeType: gp2
+              DeleteOnTermination: true
+            DeviceName: /dev/xvda     
   #EFS Mounting
   MountTargetSecurityGroup:
     Type: AWS::EC2::SecurityGroup
@@ -534,77 +560,7 @@ Resources:
             reason: "Should not be part of an ASG. Should not have Termination Protection disabled, so the CFN can remove the instance when the stack is destroyed."
           - id: IAM5
             reason: "Needs to be able to create Cloud9 environments, ECR repositories and SSM sessions, so cannot be restricted to a single resource."
-  #GGv2ManagedPolicy:
-  #  Type: AWS::IAM::ManagedPolicy
-  #  Properties:
-  #    ManagedPolicyName: !Sub "GreengrassV2TokenExchangeRoleAccess-${AWS::StackName}"
-  #    PolicyDocument:
-  #      Version: '2012-10-17'
-  #      Statement:
-  #        -
-  #          Sid: GreengrassPolicyStatement
-  #          Effect: Allow
-  #          Action:
-  #            - "logs:CreateLogGroup"
-  #            - "logs:CreateLogStream"
-  #            - "logs:PutLogEvents"
-  #            - "logs:DescribeLogStreams"
-  #            - "s3:GetBucketLocation"
-  #          Resource: "*"
-  #GreengrassTokenExchangeRole:
-  #  Type: AWS::IAM::Role
-  #  Properties:
-  #    RoleName: !Sub "GreengrassV2TokenExchangeRole-${AWS::StackName}"
-  #    AssumeRolePolicyDocument:
-  #      Version: "2012-10-17"
-  #      Statement:
-  #        - Effect: Allow
-  #          Principal:
-  #            Service:
-  #              - credentials.iot.amazonaws.com
-  #          Action:
-  #            - 'sts:AssumeRole'
-  #RobotPolicy:
-  #  Type: AWS::IAM::Policy
-  #  Properties:
-  #    PolicyName: !Sub "RobotPolicy-${AWS::StackName}"
-  #    PolicyDocument:
-  #      Statement:
-  #        - Effect: Allow
-  #          Action: [
-  #                "ecr:GetAuthorizationToken",
-  #                "ecr:BatchGetImage",
-  #                "ecr:GetDownloadUrlForLayer"
-  #                  ]
-  #          Resource: '*'
-  #        - Effect: Allow
-  #          Action: [ "greengrass:*" ] # TODO can this be narrowed, does it need to be?
-  #          Resource: '*'
-  #        - Effect: Allow
-  #          Action: [ "iot:*" ] # TODO can this be narrowed, does it need to be?
-  #          Resource: '*'
-  #    Roles:  [ !Ref 'GreengrassTokenExchangeRole' ]
-  #GreengrassTokenPolicy:
-  #  Type: AWS::IAM::Policy
-  #  Properties:
-  #    PolicyName: !Sub "GreengrassTokenExchangePolicy-${AWS::StackName}"
-  #    PolicyDocument:
-  #      Statement:
-  #        - Effect: Allow
-  #          Action: [
-  #                  "iot:DescribeCertificate",
-  #                  "logs:CreateLogGroup",
-  #                  "logs:CreateLogStream",
-  #                  "logs:PutLogEvents",
-  #                  "logs:DescribeLogStreams",
-  #                  "iot:Connect",
-  #                  "iot:Publish",
-  #                  "iot:Subscribe",
-  #                  "iot:Receive",
-  #                  "s3:GetBucketLocation"
-  #                  ]
-  #          Resource: '*'
-  #    Roles:  [ !Ref 'GreengrassTokenExchangeRole' ]
+  
   C9CleanUpFunction:
     Type: AWS::Lambda::Function
     Properties:
