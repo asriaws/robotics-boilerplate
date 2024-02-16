@@ -502,6 +502,8 @@ Resources:
           export ROSVERSION=${ROSVersion}
           export SIMULATOR=${Simulator}
           export NGCPASSWORD=${NGCAPIKey}
+          export REGION=${AWS::Region}
+          export ACCOUNT=${AWS::AccountId}
           
           ### 2. DESKTOP
           wget https://raw.githubusercontent.com/aws-samples/robotics-boilerplate/main/install-desktop.sh

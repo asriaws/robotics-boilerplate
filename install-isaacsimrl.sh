@@ -35,7 +35,7 @@ mv isaacsimrl-dockerfile /home/ubuntu/environment/OmniIsaacGymEnvs/Dockerfile
 #Build the Image and Push to ECR
 cd /home/ubuntu/environment/OmniIsaacGymEnvs
 docker build -t isaacgym-batch:latest .
-aws ecr create-repository --repository-name isaacgym-batch --region ${AWS::Region}
-aws ecr get-login-password --region ${AWS::Region} | docker login --username AWS --password-stdin ${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com
-docker tag isaacgym-batch:latest ${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/isaacgym-batch:latest
-docker push ${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/isaacgym-batch:latest
+aws ecr create-repository --repository-name isaacgym-batch --region ${REGION}
+aws ecr get-login-password --region ${REGION} | docker login --username AWS --password-stdin ${ACCOUNT}.dkr.ecr.${REGION}.amazonaws.com
+docker tag isaacgym-batch:latest ${ACCOUNT}.dkr.ecr.${REGION}.amazonaws.com/isaacgym-batch:latest
+docker push ${ACCOUNT}.dkr.ecr.${REGION}.amazonaws.com/isaacgym-batch:latest
