@@ -345,6 +345,7 @@ Resources:
   InstanceRole:
     Type: 'AWS::IAM::Role'
     Properties:
+      RoleName: AWSBatchComputeResourceRole
       AssumeRolePolicyDocument:
         Version: "2012-10-17"
         Statement:
