@@ -1,0 +1,15 @@
+# OmniIsaacGymEnvs Dockerfile
+FROM public.ecr.aws/nvidia/isaac-sim:2023.1.1
+
+# assumes build working dir is OmniIsaacGymEnvs
+COPY . /workspace/omniisaacgymenvs
+WORKDIR /workspace/omniisaacgymenvs/
+RUN /isaac-sim/python.sh -m pip install -e .
+
+# copy distributed run script into container image
+COPY ./docker/distributed_run.bash /workspace/omniisaacgymenvs/
+RUN chmod +x /workspace/omniisaacgymenvs/distributed_run.bash
+
+# default to running bash
+ENTRYPOINT [""]
+CMD ["/bin/bash"]
