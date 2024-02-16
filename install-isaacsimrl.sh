@@ -20,6 +20,7 @@ docker run --rm --gpus all ubuntu nvidia-smi
 # Download IsaacSim Image from NVCR repository
 docker login --username=\$oauthtoken --password="${NGCPASSWORD}" nvcr.io
 docker pull public.ecr.aws/nvidia/isaac-sim:2023.1.1
+docker tag public.ecr.aws/nvidia/isaac-sim:2023.1.1 nvcr.io/nvidia/isaac-sim:2023.1.1
 
 # Download OIGE Repository
 cd /home/ubuntu/environment
@@ -28,5 +29,13 @@ git clone https://github.com/NVIDIA-Omniverse/OmniIsaacGymEnvs.git
 # Download Distributed Utility and Docker file
 wget https://raw.githubusercontent.com/asriaws/robotics-boilerplate/main/distributed_run.bash
 wget https://raw.githubusercontent.com/asriaws/robotics-boilerplate/main/isaacsimrl-dockerfile
-cp distributed_run.bash /home/ubuntu/Documents/OmniIsaacGymEnvs/docker/
-cp isaacsimrl-dockerfile /home/ubuntu/Documents/OmniIsaacGymEnvs/Dockerfile
+mv distributed_run.bash /home/ubuntu/environment/OmniIsaacGymEnvs/docker/
+mv isaacsimrl-dockerfile /home/ubuntu/environment/OmniIsaacGymEnvs/Dockerfile
+
+#Build the Image and Push to ECR
+cd /home/ubuntu/environment/OmniIsaacGymEnvs
+docker build -t isaacgym-batch:latest .
+aws ecr create-repository --repository-name isaacgym-batch --region ${AWS::Region}
+aws ecr get-login-password --region ${AWS::Region} | docker login --username AWS --password-stdin ${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com
+docker tag isaacgym-batch:latest ${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/isaacgym-batch:latest
+docker push ${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/isaacgym-batch:latest
