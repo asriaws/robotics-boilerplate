@@ -42,10 +42,6 @@ Parameters:
     Description: Cloud9 Role ARN to permit access to C9 environment (arn:aws:iam::{ACCOUNT_ID}:assumed-role/{ROLE_NAME}/{ALIAS})
     Type: String
     Default: arn:aws:sts::804152302157:assumed-role/admin/asriaws-Isengard
-  NGCAPIKey:
-    Description: NGC API Key
-    Type: String
-    Default: 'ODA5NWtmcnFqYnU2Mmg3amc1dGI5MWt1dWc6OTZlZWI5ZmYtZDZhNy00OGMwLWFlYjItMzJmODU4MmEzNzM1'
   ECSBaseAMI:
     Description: AMI for AWS Batch Compute Resource
     Type: String
@@ -167,7 +163,7 @@ Resources:
       InstanceTenancy: default
       Tags:
         - Key: Name
-          Value: IsaacSimRL-VPC
+          Value: IsaacGym-VPC
   InternetGateway:
     Type: AWS::EC2::InternetGateway
   VPCGatewayAttachment:
@@ -188,7 +184,7 @@ Resources:
       MapPublicIpOnLaunch: true
       Tags:
         - Key: Name
-          Value: IsaacSimRL-PublicA
+          Value: IsaacGym-PublicA
     Metadata:
       cfn_nag:
         rules_to_suppress:
@@ -222,14 +218,14 @@ Resources:
       MapPublicIpOnLaunch: false
       Tags:
         - Key: Name
-          Value: IsaacSimRL-PrivateB
+          Value: IsaacGym-PrivateB
   RouteTableB:
     Type: AWS::EC2::RouteTable
     Properties:
       VpcId: !Ref VPC
       Tags:
         - Key: Name
-          Value: IsaacSimRL-PRIRT01
+          Value: IsaacGym-PRIRT01
   SubnetRouteTableAssociationB:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
@@ -342,10 +338,34 @@ Resources:
           - id: W2
             reason: "Ingress is needed for a variety of functions"
 ################## PERMISSIONS AND ROLES #################
+  BatchInstanceRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - ec2.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      Path: /
+      ManagedPolicyArns:
+        - 'arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess'
+        - 'arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role'
+        - 'arn:aws:iam::aws:policy/AmazonElasticFileSystemFullAccess'
+        - 'arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore'
+  BatchInstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      InstanceProfileName: BatchComputeResourceRole
+      Path: /
+      Roles: 
+        - !Ref BatchInstanceRole
   InstanceRole:
     Type: 'AWS::IAM::Role'
     Properties:
-      RoleName: AWSBatchComputeResourceRole
       AssumeRolePolicyDocument:
         Version: "2012-10-17"
         Statement:
@@ -502,7 +522,6 @@ Resources:
           export STACKNAME=${AWS::StackName}
           export ROSVERSION=${ROSVersion}
           export SIMULATOR=${Simulator}
-          export NGCPASSWORD=${NGCAPIKey}
           export REGION=${AWS::Region}
           export ACCOUNT=${AWS::AccountId}
           
@@ -536,8 +555,10 @@ Resources:
 
           ### 9. EFS Mounting
           mkdir /home/ubuntu/environment/efs
+          chown -R ubuntu:ubuntu /home/ubuntu/environment/efs
           mount -t nfs4 -o nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2 ${FileSystem}.efs.${AWS::Region}.amazonaws.com:/ /home/ubuntu/environment/efs
-          
+          wget -P /home/ubuntu/environment/efs http://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/2023.1.1/Isaac/Samples/OmniIsaacGymEnvs/Checkpoints/ant.pth
+
           ### 10. COMPLETION
           # Signal creation complete
           wget https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-py3-latest.zip

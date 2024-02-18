@@ -18,7 +18,6 @@ systemctl restart docker
 docker run --rm --gpus all ubuntu nvidia-smi
 
 # Download IsaacSim Image from NVCR repository
-docker login --username=\$oauthtoken --password="${NGCPASSWORD}" nvcr.io
 docker pull public.ecr.aws/nvidia/isaac-sim:2023.1.1
 docker tag public.ecr.aws/nvidia/isaac-sim:2023.1.1 nvcr.io/nvidia/isaac-sim:2023.1.1
 
