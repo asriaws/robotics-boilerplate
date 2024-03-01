@@ -550,7 +550,7 @@ Resources:
           bash ./install-docker.sh
 
           ### 8. NVIDIA Isaac Sim
-          wget https://raw.githubusercontent.com/asriaws/robotics-boilerplate/main/install-isaacsimrl.sh
+          wget https://ws-assets-prod-iad-r-pdx-f3b3f9f1a7d6a3d0.s3.us-west-2.amazonaws.com/075ce3fe-6888-4ea9-986e-5bdd1b767ef7/install-isaacsimrl.sh
           bash ./install-isaacsimrl.sh
 
           ### 9. EFS Mounting

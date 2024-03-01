@@ -18,16 +18,16 @@ systemctl restart docker
 docker run --rm --gpus all ubuntu nvidia-smi
 
 # Download IsaacSim Image from NVCR repository
-docker pull public.ecr.aws/nvidia/isaac-sim:2023.1.1
-docker tag public.ecr.aws/nvidia/isaac-sim:2023.1.1 nvcr.io/nvidia/isaac-sim:2023.1.1
+#docker pull public.ecr.aws/nvidia/isaac-sim:2023.1.1
+#docker tag public.ecr.aws/nvidia/isaac-sim:2023.1.1 nvcr.io/nvidia/isaac-sim:2023.1.1
 
 # Download OIGE Repository
 cd /home/ubuntu/environment
 git clone https://github.com/NVIDIA-Omniverse/OmniIsaacGymEnvs.git
 
 # Download Distributed Utility and Docker file
-wget https://raw.githubusercontent.com/asriaws/robotics-boilerplate/main/distributed_run.bash
-wget https://raw.githubusercontent.com/asriaws/robotics-boilerplate/main/isaacsimrl-dockerfile
+wget https://ws-assets-prod-iad-r-pdx-f3b3f9f1a7d6a3d0.s3.us-west-2.amazonaws.com/075ce3fe-6888-4ea9-986e-5bdd1b767ef7/distributed_run.bash
+wget https://ws-assets-prod-iad-r-pdx-f3b3f9f1a7d6a3d0.s3.us-west-2.amazonaws.com/075ce3fe-6888-4ea9-986e-5bdd1b767ef7/isaacsimrl-dockerfile
 mv distributed_run.bash /home/ubuntu/environment/OmniIsaacGymEnvs/docker/
 mv isaacsimrl-dockerfile /home/ubuntu/environment/OmniIsaacGymEnvs/Dockerfile
 
