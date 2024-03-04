@@ -46,9 +46,14 @@ if [ -z $TASK ]; then
     TASK="Ant"
 fi
 
+if [ -z $MAX_ITERATIONS ]; then 
+    echo "setting max_iterations to 2000"
+    MAX_ITERATIONS=500
+fi
+
 # run torch distributed
 /isaac-sim/python.sh \
     -m torch.distributed.run --nproc_per_node=$PROC_PER_NODE --nnodes=$NNODES --node_rank=$NODE_RANK \
     --rdzv_id=$RDVZ_ID --rdzv_backend=c10d \
     --rdzv_endpoint=$RDVZ_ENDPOINT:5555 \
-    omniisaacgymenvs/scripts/rlgames_train.py headless=True task=$TASK multi_gpu=True
+    omniisaacgymenvs/scripts/rlgames_train.py headless=True task=$TASK multi_gpu=True max_iterations=$MAX_ITERATIONS
