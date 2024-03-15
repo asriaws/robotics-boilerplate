@@ -1,5 +1,5 @@
 # OmniIsaacGymEnvs Dockerfile
-FROM public.ecr.aws/nvidia/isaac-sim:2023.1.1
+FROM public.ecr.aws/nvidia/isaac-sim:2023.1.1-2024-gtc
 
 # assumes build working dir is OmniIsaacGymEnvs
 COPY . /workspace/omniisaacgymenvs
