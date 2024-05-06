@@ -39,6 +39,7 @@ The GUI will be visible in the new browser tab.
 Check if the problem you are facing has already been solved in another [issue](https://github.com/aws-samples/robotics-boilerplate/issues). If this is not the case, open a new issue describing the problem in as much detail as possible. An error or system log would be helpgul. The contributing team will then be notified and will communicate with you on the issue thread.
 
 ## Authors
+*Abhishek Srivastav, AWS
 * Nigel Gardiner, AWS
 * Adi Singh, AWS
 
